@@ -8,11 +8,11 @@ import (
 
 // NotepadContentParser - public parser interface
 type NotepadContentParser interface {
-	Parse(content *core.NotepadContent) ([]core.Submission, error)
+	Parse(content *core.NotepadContent) (*core.StudentSubmissions, error)
 }
 
 // ParseNotepadContent - parses notepad content
-func ParseNotepadContent(parser NotepadContentParser, content *core.NotepadContent) ([]core.Submission, error) {
+func ParseNotepadContent(parser NotepadContentParser, content *core.NotepadContent) (*core.StudentSubmissions, error) {
 	return parser.Parse(content)
 }
 

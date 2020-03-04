@@ -13,7 +13,8 @@ type StudentSubmissions struct {
 
 // Submission - representation of the one student submission
 type Submission struct {
-	DateTime time.Time
+	DateTime time.Time `json:"datetime"`
+	Index int `json:"index"`
 	Points int `json:"points"`
 	Final bool `json:"final"`
 	Bonus int `json:"bonus"`
