@@ -45,73 +45,73 @@ func (parser *KontrFunctionalityParser) Parse(content string) ([]core.Submission
 			continue
 		}
 		if foundHeader {
-			submission, err := parseSubmission(line)
+			submission, err := parseSubmissionLine(line)
 			if err != nil {
 				log.Errorf("Unable to parse the submission: %v", err)
 			}
-			submissions = append(submissions, *submission)
+			submissions = append(submissions, submission)
 		}
 	}
 	return submissions, nil
 }
 
-/**
+/*
+ParseSubmissionLine - Parses one sumission line
+
 %%       datum    cas  body
  1  2020-02-18  08:45    *1
  */
-func parseSubmission(line string) (*core.Submission, error) {
-	submission := &core.Submission{ Bonus:0, Final: false}
-	words := strings.Fields(line)
+func parseSubmissionLine(line string) (core.Submission, error) {
+	submission := core.Submission{ Bonus:0, Final: false}
+	fields := strings.Fields(line)
 
-	wordsCount := len(words)
+	wordsCount := len(fields)
 
 	if wordsCount == 0 {
-		return nil, fmt.Errorf("not enought line parts - %d found", wordsCount)
+		return submission, fmt.Errorf("not enought line parts - %d found", wordsCount)
 	}
 
-	index, err := strconv.Atoi(words[0])
-	if err != nil {
-		return nil, err
-	}
-	submission.Index = index
+	var err error
 
-	if wordsCount <= 2 {
-		return submission, fmt.Errorf("not enought line parts - %d found - unable to parse datetime", wordsCount)
-	}
-
-	datetime, err := parseDateTime(words[1], words[2])
+	submission.Index, err = strconv.Atoi(fields[0])
 	if err != nil {
 		return submission, err
 	}
-	submission.DateTime = datetime
+
+	if wordsCount == 2 {
+		log.Infof("Found just %d parts", wordsCount)
+		return submission, nil
+	}
+
+	submission.DateTime, err = time.Parse("2006-01-02 15:04", fields[1] + " " + fields[2])
+	if err != nil {
+		return submission, err
+	}
 
 	if wordsCount <= 3 {
-		return submission, fmt.Errorf("not enought line parts - %d found - unable to parse points", wordsCount)
+		log.Infof("Found just %d parts: %v", wordsCount, submission)
+		return submission, nil
 	}
 
-	points, isFinal, err := parseNumberWithStar(words[3])
+	submission.Points, submission.Final, err = parseNumberWithStar(fields[3])
 	if err != nil {
 		return submission, err
 	}
-
-	submission.Points = points
-	submission.Final = isFinal
 
 	if wordsCount == 4 {
 		return submission, nil
 	}
 
-	bonus, err := strconv.Atoi(words[4])
+	submission.Bonus , err = strconv.Atoi(fields[4])
 	if err != nil {
 		return submission, err
 	}
-	submission.Bonus = bonus
 
 	if wordsCount == 5 {
 		return submission, nil
 	}
 
-	_, isFinal, err = parseNumberWithStar(words[5])
+	_, isFinal, err := parseNumberWithStar(fields[5])
 
 	if err != nil {
 		return submission, err
@@ -124,11 +124,6 @@ func parseSubmission(line string) (*core.Submission, error) {
 	return submission, nil
 }
 
-func parseDateTime(date string, tPart string) (time.Time, error) {
-	full := date + " " + tPart
-
-	return time.Parse("2006-01-02 15:04", full)
-}
 
 func parseNumberWithStar(s string) (int, bool, error) {
 	var isFinal = false

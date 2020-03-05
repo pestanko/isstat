@@ -45,11 +45,26 @@ func (client *CourseClient) GetNotepadContent(notepadCodename string) (*NotepadC
 		return nil, err
 	}
 
+	return client.Unmarshal(data)
+}
+
+//Unmarshal the data bytes and unmarshall
+func (client *CourseClient) Unmarshal(data []byte)  (*NotepadContent, error)  {
 	content := &NotepadContent{}
 
-	xml.Unmarshal(data, content)
+	if err := xml.Unmarshal(data, content); err != nil {
+		return nil, err
+	}
 
-	return content, nil
+	return content,nil
+}
+
+//Save the data to the XML file (caching)
+func (client *CourseClient) Save(data []byte, name string) error {
+	if err := ioutil.WriteFile(name, data, 0644); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Fetch - fetches XML data
