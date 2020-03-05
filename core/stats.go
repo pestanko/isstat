@@ -20,4 +20,8 @@ type Submission struct {
 	Bonus int `json:"bonus"`
 }
 
+// NewStundentSubmissions creates instance for the stundet submissions
+func NewStundentSubmissions(uid uuid.UUID) StudentSubmissions {
+	return StudentSubmissions{ID: uid, Submissions: []Submission{}}
+}
 

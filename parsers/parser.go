@@ -1,9 +1,9 @@
 package parsers
 
 import (
-	"fmt"
-
 	"github.com/pestanko/isstat/core"
+	log "github.com/sirupsen/logrus"
+
 )
 
 // NotepadContentParser - public parser interface
@@ -16,26 +16,36 @@ func ParseNotepadContent(parser NotepadContentParser, content string) ([]core.Su
 	return parser.Parse(content)
 }
 
-// Register - container for all of the registered parsers
-type Register struct {
-	Parsers map[string]NotepadContentParser
+// Parser - The main parser
+type Parser interface {
+	Parse(content *core.NotepadContent) ([]core.StudentSubmissions, error)
 }
 
-// NewRegister - create a new instance
-func NewRegister() Register {
-	return Register{Parsers: make(map[string]NotepadContentParser)}
+// BasicParser implementation
+type BasicParser struct {
+	StudentsRegister *core.StudentsRegister
+	NotepadContentParser NotepadContentParser
 }
 
-// Register a new parser
-func (register *Register) Register(name string, parser NotepadContentParser) {
-	register.Parsers[name] = parser
-}
+// Parse the provided student's content using the Basic parser
+func (parser *BasicParser) Parse(content *core.NotepadContent) ([]core.StudentSubmissions, error)  {
+	var students = make([]core.StudentSubmissions, len(content.StudentsContent))
 
-// Get a parser instance
-func (register *Register) Get(name string) (NotepadContentParser, error) {
-	value, ok := register.Parsers[name]
-	if !ok {
-		return nil, fmt.Errorf("Parser with name not found: %s", name)
+	for i, student := range content.StudentsContent {
+		var uid = parser.StudentsRegister.GetOrRegister(student.Uco)
+		var err error
+
+		students[i] = core.NewStundentSubmissions(uid)
+
+		log.WithField("index", i).WithField("student_uco", student.Uco).WithField("content", student.Content).Debug("parsing content")
+		students[i].Submissions, err = parser.NotepadContentParser.Parse(student.Content)
+
+		if err != nil {
+			log.WithField("content", student.Content).Error("Unable to parse submissions")
+			continue
+		}
 	}
-	return value, nil
+
+	return students, nil
 }
+
