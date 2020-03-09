@@ -5,8 +5,8 @@ import uuid "github.com/google/uuid"
 import "time"
 
 
-// StudentSubmissions - representation of the student submissions
-type StudentSubmissions struct {
+// StudentInfo - representation of the student submissions
+type StudentInfo struct {
 	ID uuid.UUID `json:"uid"`
 	Submissions []Submission `json:"submissions"`
 }
@@ -21,6 +21,6 @@ type Submission struct {
 }
 
 // NewStundentSubmissions creates instance for the stundet submissions
-func NewStundentSubmissions(uid uuid.UUID) StudentSubmissions {
-	return StudentSubmissions{ID: uid, Submissions: []Submission{}}
+func NewStundentSubmissions(uid uuid.UUID) StudentInfo {
+	return StudentInfo{ID: uid, Submissions: []Submission{}}
 }
