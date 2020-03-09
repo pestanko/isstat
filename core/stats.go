@@ -24,4 +24,3 @@ type Submission struct {
 func NewStundentSubmissions(uid uuid.UUID) StudentSubmissions {
 	return StudentSubmissions{ID: uid, Submissions: []Submission{}}
 }
-

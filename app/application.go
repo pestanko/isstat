@@ -15,7 +15,3 @@ type IsStatApp struct {
 func NewBasicApp(client *core.CourseClient, parser parsers.Parser) IsStatApp {
 	return IsStatApp {Client: client, Parser: parser}
 }
-
-type IsStatsAppFactory struct {
-	Config 
-}
