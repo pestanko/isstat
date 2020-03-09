@@ -18,11 +18,10 @@ limitations under the License.
 
 import (
   "fmt"
+  "github.com/pestanko/isstat/app"
+  log "github.com/sirupsen/logrus"
   "github.com/spf13/cobra"
   "os"
-  "path"
-
-  "github.com/spf13/viper"
 )
 
 
@@ -68,28 +67,9 @@ func init() {
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-  if cfgFile != "" {
-    // Use config file from the flag.
-    viper.SetConfigFile(cfgFile)
-  } else {
-    // Find configDir directory.
-    configDir, err := os.UserConfigDir()
-    if err != nil {
-      fmt.Println(err)
-      os.Exit(1)
-    }
-
-    appConfigDir := path.Join(configDir, "isstat")
-
-    viper.AddConfigPath(appConfigDir)
-    viper.SetConfigName("config")
-  }
-
-  viper.AutomaticEnv() // read in environment variables that match
-
-  // If a config file is found, read it in.
-  if err := viper.ReadInConfig(); err == nil {
-    fmt.Println("Using config file:", viper.ConfigFileUsed())
+  if err := app.LoadConfig(cfgFile); err != nil {
+    log.WithError(err).Error("Unable to load a config")
+    os.Exit(1)
   }
 }
 

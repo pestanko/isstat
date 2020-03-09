@@ -18,7 +18,7 @@ func ParseNotepadContent(parser NotepadContentParser, content string) ([]core.Su
 
 // Parser - The main parser
 type Parser interface {
-	Parse(content *core.NotepadContent) ([]core.StudentSubmissions, error)
+	Parse(content *core.NotepadContent) ([]core.StudentInfo, error)
 }
 
 // BasicParser implementation
@@ -28,8 +28,8 @@ type BasicParser struct {
 }
 
 // Parse the provided student's content using the Basic parser
-func (parser *BasicParser) Parse(content *core.NotepadContent) ([]core.StudentSubmissions, error)  {
-	var students = make([]core.StudentSubmissions, len(content.StudentsContent))
+func (parser *BasicParser) Parse(content *core.NotepadContent) ([]core.StudentInfo, error)  {
+	var students = make([]core.StudentInfo, len(content.StudentsContent))
 
 	for i, student := range content.StudentsContent {
 		var uid = parser.StudentsRegister.GetOrRegister(student.Uco)

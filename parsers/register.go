@@ -2,14 +2,16 @@ package parsers
 
 import "fmt"
 
+var parserRegister *Register
+
 // Register - container for all of the registered parsers
 type Register struct {
 	Parsers map[string]NotepadContentParser
 }
 
 // NewRegister - create a new instance
-func NewRegister() Register {
-	return Register{Parsers: make(map[string]NotepadContentParser)}
+func NewRegister() *Register {
+	return &Register{Parsers: make(map[string]NotepadContentParser)}
 }
 
 // Register a new parser
@@ -24,4 +26,11 @@ func (register *Register) Get(name string) (NotepadContentParser, error) {
 		return nil, fmt.Errorf("Parser with name not found: %s", name)
 	}
 	return value, nil
+}
+
+func GetParserRegister() *Register {
+	if parserRegister == nil {
+		parserRegister = NewRegister()
+	}
+	return parserRegister
 }
