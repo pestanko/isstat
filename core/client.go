@@ -29,13 +29,32 @@ type CourseClient struct {
 	Course    string
 }
 
-// NewCourseClient - Creates a new couse client
+// UnmarshalNotepadContent - unmarshal the notepad content
+func UnmarshalNotepadContent(data []byte) (content NotepadContent, err error) {
+	if err := xml.Unmarshal(data, content); err != nil {
+		return content, err
+	}
+
+	return content,nil
+}
+
+// NewCourseClient - Creates a new course client
 func NewCourseClient(url string, token string, facultyID int, course string) CourseClient {
 	return CourseClient{URL: url, Token: token, FacultyID: facultyID, Course: course}
 }
 
 //GetNotepadContent - Gets a notepad content
-func (client *CourseClient) GetNotepadContent(notepadCodename string) (*NotepadContent, error) {
+func (client *CourseClient) GetNotepadContent(notepadCodename string) (NotepadContent, error) {
+	data, err := client.GetNotepadContentData(notepadCodename)
+	if err != nil {
+		return NotepadContent{}, err
+	}
+
+	return UnmarshalNotepadContent(data)
+}
+
+// GetNotepadContentData - Gets a raw notepad content data
+func (client *CourseClient) GetNotepadContentData(notepadCodename string) ([]byte, error) {
 	notepadURL := client.buildNotesURL(notepadCodename)
 
 	log.WithField("url", notepadURL).Info("Using the notepad url")
@@ -44,19 +63,7 @@ func (client *CourseClient) GetNotepadContent(notepadCodename string) (*NotepadC
 	if err != nil {
 		return nil, err
 	}
-
-	return client.Unmarshal(data)
-}
-
-//Unmarshal the data bytes and unmarshall
-func (client *CourseClient) Unmarshal(data []byte)  (*NotepadContent, error)  {
-	content := &NotepadContent{}
-
-	if err := xml.Unmarshal(data, content); err != nil {
-		return nil, err
-	}
-
-	return content,nil
+	return data, nil
 }
 
 //Save the data to the XML file (caching)
@@ -69,8 +76,10 @@ func (client *CourseClient) Save(data []byte, name string) error {
 
 // Fetch - fetches XML data
 func (client *CourseClient) Fetch(url string) ([]byte, error) {
+	log.WithField("url", url).Debug("Fetching data")
 	resp, err := http.Get(url)
 	if err != nil {
+		log.WithError(err).WithField("url", url).Error("Fetch failed")
 		return nil, err
 	}
 

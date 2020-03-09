@@ -11,17 +11,23 @@ import (
 
 // Config - Application config
 type Config struct {
-	IsMuni     IsMuni `json:"is_muni" yaml:"is_muni"`
-	Parser     string `json:"parser" yaml:"parser"`
-	ResultsDir string `json:"results_dir" yaml:"results_dir"`
+	IsMuni     IsMuniConfig `json:"is_muni" yaml:"is_muni"`
+	Cache      CacheConfig  `json:"cache" yaml:"cache"`
+	Parser     string       `json:"parser" yaml:"parser"`
+	ResultsDir string       `json:"cache" yaml:"results_dir"`
 }
 
-//IsMuni - Is muni config
-type IsMuni struct {
+//IsMuniConfig - Is muni config
+type IsMuniConfig struct {
 	URL       string `json:"url" yaml:"url"`
 	Token     string `json:"token" yaml:"token"`
 	Course    string `json:"course" yaml:"course"`
 	FacultyID int    `json:"faculty_id" yaml:"faculty_id"`
+}
+
+type CacheConfig struct {
+	Directory string `json:"dir" yaml:"dir"`
+	Disabled  bool   `json:"disabled" yaml:"disabled"`
 }
 
 // Gets the application configuration directory
