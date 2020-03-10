@@ -10,10 +10,13 @@ import (
 type IsStatApp struct {
 	Client core.CourseClient
 	Parser parsers.NotepadContentParser
-	Cache core.Cache
+	Results core.Results
 }
 
+// Fetch - fetches the notepads content
 func (app *IsStatApp) Fetch(notepads []string) error {
+	timestamp := core.GetCurrentTimestamp()
+
 	for i, notepad := range notepads {
 		log.WithField("index", i).WithField("name", notepads).Info("Fetching notepad")
 		data, err := app.Client.GetNotepadContentData(notepad)
@@ -23,17 +26,14 @@ func (app *IsStatApp) Fetch(notepads []string) error {
 			return err
 		}
 
-		serialized, err := core.UnmarshalNotepadContent(data)
-		if(err != nil) {
-
+		if err := app.Results.StoreWithTimestamp(notepad, timestamp, data); err != nil {
+			log.WithError(err).WithField("notepad", notepad).WithField("timestamp", timestamp).Error("Unable to store result")
+			return err
 		}
 	}
+	return nil
 }
 
-// NewBasicApp - create a new basic application
-func NewBasicApp(client core.CourseClient, parser parsers.NotepadContentParser, ) IsStatApp {
-	return IsStatApp {Client: client, Parser: parser}
-}
 
 // GetApplication - gets an application instance
 func GetApplication(config *Config) (IsStatApp, error) {
@@ -43,5 +43,5 @@ func GetApplication(config *Config) (IsStatApp, error) {
 		return IsStatApp{}, err
 	}
 
-	return IsStatApp{ Client: client, Parser: parser, Cache: core.NewCache(config.Cache.Directory)}, nil
+	return IsStatApp{ Client: client, Parser: parser, Results: core.NewResults(config.ResultsDir)}, nil
 }
