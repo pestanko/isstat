@@ -50,10 +50,10 @@ func (results *Results) Store(item *ResultItem) error {
 		item.TimeStamp = GetCurrentTimestamp()
 	}
 
-	fullpath := path.Join(results.ResultsDir, item.GetFullName())
-	item.getLogEntry().WithField("path", fullpath).Info("Storing result")
+	fullPath := path.Join(results.ResultsDir, item.GetFullName())
+	item.getLogEntry().WithField("path", fullPath).Info("Storing result")
 
-	return ioutil.WriteFile(fullpath, item.Data, 0644)
+	return ioutil.WriteFile(fullPath, item.Data, 0644)
 }
 
 // Get - get item's content

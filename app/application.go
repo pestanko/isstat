@@ -30,26 +30,16 @@ func (app *IsStatApp) FetchWithTimestamp(notepads []string, timestamp string) er
 			return err
 		}
 
-		if err := app.Results.StoreWithTimestamp(notepad, timestamp, "xml", data); err != nil {
+		resultItem := core.NewResultItem(notepad, timestamp, "xml")
+		resultItem.Data = data
+
+		if err := app.Results.Store(&resultItem); err != nil {
 			log.WithError(err).WithField("notepad", notepad).WithField("timestamp", timestamp).Error("Unable to store result")
 			return err
 		}
 	}
 	return nil
 }
-
-// ParseFile - parses provided file
-func (app *IsStatApp) ParseFile(filename string) error {
-	content, err := app.Results.GetFileContent(filename)
-
-	if err != nil {
-		log.WithField("name", filename).WithError(err).Error("Unable get the file from the results")
-		return err
-	}
-
-	
-}
-
 
 // GetApplication - gets an application instance
 func GetApplication(config *Config) (IsStatApp, error) {

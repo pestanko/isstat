@@ -11,32 +11,32 @@ import (
 
 // StudentsRegister - container for all of the registered parsers
 type StudentsRegister struct {
-	users map[string]uuid.UUID `json:"users"`
+	Users map[string]uuid.UUID `json:"Users"`
 }
 
 // NewStudentsRegister - create a new instance
 func NewStudentsRegister() StudentsRegister {
-	return StudentsRegister{users: make(map[string]uuid.UUID)}
+	return StudentsRegister{Users: make(map[string]uuid.UUID)}
 }
 
 // Register a new parser
 func (register *StudentsRegister) Register(uco string, uuid uuid.UUID) {
-	register.users[uco] = uuid
+	register.Users[uco] = uuid
 }
 
 // GetOrRegister new UUID for the provided uco
 func (register *StudentsRegister) GetOrRegister(uco string) uuid.UUID {
-	value, ok := register.users[uco]
+	value, ok := register.Users[uco]
 	if !ok {
 		value = uuid.New()
-		register.users[uco] = value
+		register.Users[uco] = value
 	}
 	return value
 }
 
 // Get a parser instance
 func (register *StudentsRegister) Get(uco string) (uuid.UUID, error) {
-	value, ok := register.users[uco]
+	value, ok := register.Users[uco]
 	if !ok {
 		return uuid.UUID{}, fmt.Errorf("User with uco not found: %s", uco)
 	}
@@ -45,7 +45,7 @@ func (register *StudentsRegister) Get(uco string) (uuid.UUID, error) {
 
 // Export students register to a provided file
 func (register *StudentsRegister) Export(file string) {
-	content, err := json.MarshalIndent(register.users, "", "  ")
+	content, err := json.MarshalIndent(register.Users, "", "  ")
 	if err != nil {
 		log.WithError(err).Error("Unable to marshall file")
 	}
@@ -55,7 +55,7 @@ func (register *StudentsRegister) Export(file string) {
 	}
 }
 
-// Import the file content to the refgister
+// Import the file content to the register
 func (register *StudentsRegister) Import(file string) error {
 
 	content, err := ioutil.ReadFile(file)
@@ -63,10 +63,9 @@ func (register *StudentsRegister) Import(file string) error {
 		log.WithField("filepath", file).WithError(err).Error("unable to read a file")
 	}
 
-	if err = json.Unmarshal(content, register.users); err != nil {
+	if err = json.Unmarshal(content, register.Users); err != nil {
 		log.WithField("filepath", file).WithError(err).Error("unable to unmarshal a file")
-
 	}
 
+	return nil
 }
-

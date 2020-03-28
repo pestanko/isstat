@@ -61,5 +61,11 @@ func ExecuteCommand(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	application.Fetch()
+	err = application.Fetch(args)
+	if err != nil {
+		fmt.Printf("error: %v", err)
+		os.Exit(1)
+	} else {
+		fmt.Println("Fetch was successful")
+	}
 }
