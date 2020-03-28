@@ -39,7 +39,8 @@ var configCmd = &cobra.Command{
 			fmt.Printf("error: %v", err)
 			os.Exit(1)
 		}
-		println(content)
+
+		fmt.Println(content)
 	},
 }
 

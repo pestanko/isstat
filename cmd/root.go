@@ -21,11 +21,14 @@ import (
   "github.com/pestanko/isstat/app"
   log "github.com/sirupsen/logrus"
   "github.com/spf13/cobra"
+  "github.com/spf13/viper"
   "os"
 )
 
 
-var cfgFile string
+var (
+  cfgFile string
+)
 
 
 // rootCmd represents the base command when called without any subcommands
@@ -50,6 +53,7 @@ func Execute() {
 }
 
 func init() {
+
   cobra.OnInitialize(initConfig)
 
   // Here you will define your flags and configuration settings.
@@ -57,17 +61,24 @@ func init() {
   // will be global for your application.
 
   rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/isstat/config.yaml)")
+  rootCmd.PersistentFlags().StringP( "url", "U", "", "is muni url")
+  rootCmd.PersistentFlags().StringP( "token", "T", "", "is muni token")
+  rootCmd.PersistentFlags().StringP( "course", "C", "", "is muni course code")
+  rootCmd.PersistentFlags().Int( "faculty-id", 0, "is muni faculty id")
+  rootCmd.PersistentFlags().String( "parser", "", "parser for parsing the muni notepad content")
+  rootCmd.PersistentFlags().String( "results", "", "results directory (default $CWD)")
 
+  _ = viper.BindPFlag("muni.url", rootCmd.PersistentFlags().Lookup("url"))
+  _ = viper.BindPFlag("muni.token", rootCmd.PersistentFlags().Lookup("token"))
+  _ = viper.BindPFlag("muni.course", rootCmd.PersistentFlags().Lookup("course"))
+  _ = viper.BindPFlag("muni.faculty", rootCmd.PersistentFlags().Lookup("faculty-id"))
 
-  // Cobra also supports local flags, which will only run
-  // when this action is called directly.
-  rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-  log.SetLevel(log.DebugLevel)
+  app.SetupLogger("")
 
   if err := app.LoadConfig(cfgFile); err != nil {
     log.WithError(err).Error("Unable to load a config")

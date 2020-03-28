@@ -1,6 +1,9 @@
 package parsers
 
-import "fmt"
+import (
+	"fmt"
+	log "github.com/sirupsen/logrus"
+)
 
 var parserRegister *Register
 
@@ -23,9 +26,24 @@ func (register *Register) Register(name string, parser NotepadContentParser) {
 func (register *Register) Get(name string) (NotepadContentParser, error) {
 	value, ok := register.Parsers[name]
 	if !ok {
-		return nil, fmt.Errorf("Parser with name not found: %s", name)
+		return nil, fmt.Errorf("parser not found '%s'", name)
 	}
 	return value, nil
+}
+
+
+func (register *Register) GetOrDefault(name string) NotepadContentParser {
+	parser, err := register.Get(name)
+
+	if err != nil {
+		log.WithField("name", name).WithError(err).Debug("No parser found")
+		parser, err = register.Get("default")
+		if err != nil {
+			log.Error("No default parser registered - something is definitely wrong!")
+		}
+	}
+
+	return parser
 }
 
 func GetParserRegister() *Register {

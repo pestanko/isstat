@@ -11,22 +11,21 @@ import (
 
 // Config - Application config
 type Config struct {
-	Muni       IsMuniConfig `json:"muni" yaml:"muni"`
-	Parser     string       `json:"parser" yaml:"parser"`
-	ResultsDir string       `json:"cache" yaml:"results_dir"`
+	Muni    MuniConfig `json:"muni" yaml:"muni" mapstructure:"muni"`
+	Parser  string     `json:"parser" yaml:"parser" mapstructure:"parser"`
+	Results string     `json:"cache" yaml:"results" mapstructure:"results"`
 }
 
-//IsMuniConfig - Is muni config
-type IsMuniConfig struct {
-	URL       string `json:"url" yaml:"url"`
-	Token     string `json:"token" yaml:"token"`
-	Course    string `json:"course" yaml:"course"`
-	FacultyID int    `json:"faculty_id" yaml:"faculty_id"`
+//MuniConfig - Is muni config
+type MuniConfig struct {
+	URL     string `json:"url" yaml:"url" mapstructure:"url"`
+	Token   string `json:"token" yaml:"token" mapstructure:"token"`
+	Course  string `json:"course" yaml:"course" mapstructure:"course"`
+	Faculty int    `json:"faculty_id" yaml:"faculty" mapstructure:"faculty"`
 }
 
-type CacheConfig struct {
-	Directory string `json:"dir" yaml:"dir"`
-	Disabled  bool   `json:"disabled" yaml:"disabled"`
+func EmptyConfig() Config {
+	return Config{}
 }
 
 // Gets the application configuration directory
@@ -94,12 +93,16 @@ func LoadConfig(cfgFile string) error {
 		}
 
 		if _, err := os.Stat(appConfigDir); os.IsNotExist(err) {
-			createDefaultConfig(appConfigDir)
+			if err = createDefaultConfig(appConfigDir); err != nil {
+				return err
+			}
 		}
 
 		filePath := path.Join(appConfigDir, "config.yml")
 		if _, err := os.Stat(filePath); os.IsNotExist(err) {
-			createDefaultConfigFile(filePath)
+			if err = createDefaultConfigFile(filePath); err != nil {
+				return err
+			}
 		}
 
 		viper.AddConfigPath(appConfigDir)
@@ -125,22 +128,18 @@ func createDefaultConfig(dir string) error {
 		return err
 	}
 
-	err := createDefaultConfigFile(dir)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
 func createDefaultConfigFile(filePath string) error {
 	config := Config{
-		Muni: IsMuniConfig{
-			URL:       "https://is.muni.cz",
-			Token:     "",
-			Course:    "PB071",
-			FacultyID: 1433,
+		Muni: MuniConfig{
+			URL:     "https://is.muni.cz",
+			Token:   "",
+			Course:  "PB071",
+			Faculty: 1433,
 		},
+		Parser: "default",
 	}
 	log.WithField("cfgFile", filePath).Info("Creating config file")
 
@@ -160,9 +159,9 @@ func GetAppConfig() (Config, error) {
 		return config, err
 	}
 
-	if config.ResultsDir == "" {
+	if config.Results == "" {
 		var err error
-		config.ResultsDir, err = os.Getwd()
+		config.Results, err = os.Getwd()
 		if err != nil {
 			log.WithError(err).Warning("Unable to get current working directory")
 			return config, err

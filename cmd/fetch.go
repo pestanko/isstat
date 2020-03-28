@@ -55,17 +55,21 @@ func ExecuteCommand(cmd *cobra.Command, args []string) {
 		fmt.Printf("error: %v", err)
 		os.Exit(1)
 	}
+
 	application, err := app.GetApplication(&config)
 	if err != nil {
 		fmt.Printf("error: %v", err)
 		os.Exit(1)
 	}
 
-	err = application.Fetch(args)
+	items, err := application.Fetch(args)
 	if err != nil {
 		fmt.Printf("error: %v", err)
 		os.Exit(1)
-	} else {
-		fmt.Println("Fetch was successful")
+	}
+
+	fmt.Printf("Fetch was successful, result stored in %s\n", application.Results.ResultsDir)
+	for i, item := range items {
+		fmt.Printf("%d  %25s\n", i, item.GetFullName())
 	}
 }
