@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path"
 	"time"
 
@@ -41,6 +42,15 @@ func (item *ResultItem) getLogEntry() *log.Entry {
 
 // NewResults - Creates a new result holder
 func NewResults(resultsDir string) Results {
+	var err error
+	if resultsDir == "" {
+		resultsDir, err = os.Getwd()
+		if err != nil {
+			log.WithError(err).Warning("Unable to get current working directory")
+		}
+	}
+
+	log.WithField("dir", resultsDir).Info("Results dir location")
 	return Results{ResultsDir: resultsDir}
 }
 

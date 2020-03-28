@@ -43,7 +43,7 @@ func (app *IsStatApp) FetchWithTimestamp(notepads []string, timestamp string) er
 
 // GetApplication - gets an application instance
 func GetApplication(config *Config) (IsStatApp, error) {
-	client := core.NewCourseClient(config.IsMuni.URL, config.IsMuni.Token, config.IsMuni.FacultyID, config.IsMuni.Course)
+	client := core.NewCourseClient(config.Muni.URL, config.Muni.Token, config.Muni.FacultyID, config.Muni.Course)
 	parser, err := parsers.GetParserRegister().Get(config.Parser)
 	if err != nil {
 		return IsStatApp{}, err

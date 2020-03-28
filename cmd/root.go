@@ -67,9 +67,12 @@ func init() {
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
+  log.SetLevel(log.DebugLevel)
+
   if err := app.LoadConfig(cfgFile); err != nil {
     log.WithError(err).Error("Unable to load a config")
     os.Exit(1)
   }
+
 }
 

@@ -11,8 +11,7 @@ import (
 
 // Config - Application config
 type Config struct {
-	IsMuni     IsMuniConfig `json:"is_muni" yaml:"is_muni"`
-	Cache      CacheConfig  `json:"cache" yaml:"cache"`
+	Muni       IsMuniConfig `json:"muni" yaml:"muni"`
 	Parser     string       `json:"parser" yaml:"parser"`
 	ResultsDir string       `json:"cache" yaml:"results_dir"`
 }
@@ -64,6 +63,15 @@ func (config *Config) Save(file string) error {
 	return err
 }
 
+func (config *Config) Dump() (string, error) {
+	content, err := yaml.Marshal(config)
+	if err != nil {
+		return "", err
+	}
+
+	return string(content), nil
+}
+
 // SaveToDefaultLocation - Saves a config to the default location ~/.config/isstat/config.yml
 func (config *Config) SaveToDefaultLocation() error {
 	filePath, err := GetConfigFilePath()
@@ -85,6 +93,15 @@ func LoadConfig(cfgFile string) error {
 			return err
 		}
 
+		if _, err := os.Stat(appConfigDir); os.IsNotExist(err) {
+			createDefaultConfig(appConfigDir)
+		}
+
+		filePath := path.Join(appConfigDir, "config.yml")
+		if _, err := os.Stat(filePath); os.IsNotExist(err) {
+			createDefaultConfigFile(filePath)
+		}
+
 		viper.AddConfigPath(appConfigDir)
 		viper.SetConfigName("config")
 	}
@@ -101,6 +118,39 @@ func LoadConfig(cfgFile string) error {
 	return nil
 }
 
+func createDefaultConfig(dir string) error {
+	log.WithField("dir", dir).Info("Creating default config since it does not exists!")
+	if err := os.Mkdir(dir, 0755); err != nil {
+		log.WithError(err).WithField("dir", dir).Error("Unable to create directory")
+		return err
+	}
+
+	err := createDefaultConfigFile(dir)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func createDefaultConfigFile(filePath string) error {
+	config := Config{
+		Muni: IsMuniConfig{
+			URL:       "https://is.muni.cz",
+			Token:     "",
+			Course:    "PB071",
+			FacultyID: 1433,
+		},
+	}
+	log.WithField("cfgFile", filePath).Info("Creating config file")
+
+	if err := config.Save(filePath); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // GetAppConfig - Unmarshal the app configuration using the viper
 func GetAppConfig() (Config, error) {
 	var config Config
@@ -109,5 +159,15 @@ func GetAppConfig() (Config, error) {
 		log.WithError(err).WithField("file", viper.ConfigFileUsed()).Error("Unable to parse config")
 		return config, err
 	}
+
+	if config.ResultsDir == "" {
+		var err error
+		config.ResultsDir, err = os.Getwd()
+		if err != nil {
+			log.WithError(err).Warning("Unable to get current working directory")
+			return config, err
+		}
+	}
+
 	return config, nil
 }
