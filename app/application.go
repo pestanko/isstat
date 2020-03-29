@@ -55,6 +55,41 @@ func (app *IsStatApp) FetchOne(notepad string, timestamp string) (core.ResultIte
 	return resultItem, nil
 }
 
+func (app *IsStatApp) ConvertToCSV(patterns []string) ([]core.ResultItem, error) {
+	var items []core.ResultItem
+
+	fileNames := app.Results.GlobAll(patterns)
+	log.WithField("filenames", fileNames).Info("found filenames")
+
+	for _, notepad := range fileNames {
+		resultItem, err2 := app.ConvertToCSVOne(notepad)
+		if err2 != nil {
+			return items, err2
+		}
+		items = append(items, resultItem)
+	}
+	return items, nil
+}
+
+func (app *IsStatApp) ConvertToCSVOne(notepad string) (core.ResultItem, error) {
+	log.WithField("name", notepad).Info("Converting to csv")
+
+	resultItem := core.NewResultItemFromFullName(notepad)
+
+	csvContent, err := app.convertStudentInfo(&resultItem)
+	if err != nil {
+		return resultItem, err
+	}
+
+	csvItem := core.NewResultItem(resultItem.Name, resultItem.TimeStamp, "csv")
+
+	if err := core.WriteStatisticsToCSVFile(app.Results.GetPath(&resultItem), csvContent); err != nil {
+		return csvItem, err
+	}
+
+	return csvItem, err
+}
+
 func (app *IsStatApp) Parse(patterns []string) (map[string][]core.StudentInfo, error) {
 	var items = make(map[string][]core.StudentInfo)
 	log.WithField("patterns", patterns).Info("Parse notepads")
@@ -112,6 +147,20 @@ func (app *IsStatApp) parseResultItem(item *core.ResultItem) ([]core.StudentInfo
 	}
 
 	return app.Parser.Parse(&notepadContent)
+}
+
+func (app *IsStatApp) convertStudentInfo(item *core.ResultItem) ([]core.CSVStatistic, error) {
+	fileContent, err := app.Results.GetContent(item)
+	if err != nil {
+		return []core.CSVStatistic{}, err
+	}
+
+	infoContent, err := core.UnmarshalStudentInfo(fileContent)
+	if err != nil {
+		return []core.CSVStatistic{}, err
+	}
+
+	return core.ConvertSubmissionsToCSVStatistics(infoContent), nil
 }
 
 // GetApplication - gets an application instance

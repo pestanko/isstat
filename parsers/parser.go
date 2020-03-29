@@ -35,7 +35,7 @@ func (parser *BasicParser) Parse(content *core.NotepadContent) ([]core.StudentIn
 		var uid = parser.StudentsRegister.GetOrRegister(student.Uco)
 		var err error
 
-		students[i] = core.NewStundentSubmissions(uid)
+		students[i] = core.NewStudentSubmissions(uid)
 
 		log.WithField("index", i).WithField("student_uco", student.Uco).WithField("content", student.Content).Debug("parsing content")
 		students[i].Submissions, err = parser.NotepadContentParser.Parse(student.Content)

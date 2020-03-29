@@ -81,7 +81,7 @@ func (results *Results) Store(item *ResultItem) error {
 		item.TimeStamp = GetCurrentTimestamp()
 	}
 
-	fullPath := path.Join(results.ResultsDir, item.GetFullName())
+	fullPath := results.GetPath(item)
 	item.getLogEntry().WithField("path", fullPath).Info("Storing result")
 
 	return ioutil.WriteFile(fullPath, item.Data, 0644)
@@ -89,11 +89,11 @@ func (results *Results) Store(item *ResultItem) error {
 
 // Get - get item's content
 func (results *Results) Get(item *ResultItem) (*ResultItem, error) {
-	fullpath := path.Join(results.ResultsDir, item.GetFullName())
+	fullPath := results.GetPath(item)
 
-	entry := log.WithField("fullpath", fullpath)
+	entry := log.WithField("fullPath", fullPath)
 
-	data, err := ioutil.ReadFile(fullpath)
+	data, err := ioutil.ReadFile(fullPath)
 
 	if err != nil {
 		entry.WithError(err).Error("Unable to read a file")
@@ -151,7 +151,7 @@ func (results *Results) GetPath(item *ResultItem) string {
 
 // Gets content as bytes
 func (results *Results) GetContent(item *ResultItem) ([]byte, error) {
-	fp := path.Join(results.ResultsDir, item.GetFullName())
+	fp := results.GetPath(item)
 	return ioutil.ReadFile(fp)
 }
 
@@ -186,6 +186,7 @@ func (results *Results) Glob(pattern string) []string {
 
 	return filenames
 }
+
 
 // GetCurrentTimestamp - Gets a current timestamp
 func GetCurrentTimestamp() string {

@@ -30,6 +30,7 @@ func WriteStatisticsToCSVFile(file string, statistics []CSVStatistic) error {
 	return gocsv.MarshalFile(statistics, csvFile)
 }
 
+
 // ConvertSubmissionsToCSVStatistics - Converter
 func ConvertSubmissionsToCSVStatistics(students []StudentInfo) []CSVStatistic {
 	var stats []CSVStatistic
