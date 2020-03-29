@@ -37,8 +37,8 @@ func ConvertSubmissionsToCSVStatistics(students []StudentInfo) []CSVStatistic {
 		for _, submission := range student.Submissions {
 			stat := CSVStatistic{
 				StudentID: student.ID.String(),
-				DateTime:  submission.DateTime.String(),
 				Index:     submission.Index,
+				DateTime:  submission.DateTime.String(),
 				Points:    submission.Points,
 				Final:     submission.Final,
 				Bonus:     submission.Bonus,
