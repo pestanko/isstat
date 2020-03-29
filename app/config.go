@@ -82,6 +82,8 @@ func (config *Config) SaveToDefaultLocation() error {
 
 // LoadConfig - Loads a config from the configuration
 func LoadConfig(cfgFile string) error {
+	setDefaults()
+
 	if cfgFile != "" {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
@@ -92,21 +94,12 @@ func LoadConfig(cfgFile string) error {
 			return err
 		}
 
-		if _, err := os.Stat(appConfigDir); os.IsNotExist(err) {
-			if err = createDefaultConfig(appConfigDir); err != nil {
-				return err
-			}
-		}
-
-		filePath := path.Join(appConfigDir, "config.yml")
-		if _, err := os.Stat(filePath); os.IsNotExist(err) {
-			if err = createDefaultConfigFile(filePath); err != nil {
-				return err
-			}
-		}
-
 		viper.AddConfigPath(appConfigDir)
-		viper.SetConfigName("config")
+		workingDirectory, err := os.Getwd()
+		if err == nil {
+			viper.AddConfigPath(workingDirectory)
+		}
+		viper.SetConfigName("isstat-config")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
@@ -115,38 +108,9 @@ func LoadConfig(cfgFile string) error {
 	if err := viper.ReadInConfig(); err == nil {
 		log.WithField("file", viper.ConfigFileUsed()).Info("Using config file")
 	} else {
-		log.WithField("file", viper.ConfigFileUsed()).WithError(err).Error("Unable to use the config file")
-		return err
+		log.WithField("file", viper.ConfigFileUsed()).WithError(err).Debug("Config file not found")
+		return nil
 	}
-	return nil
-}
-
-func createDefaultConfig(dir string) error {
-	log.WithField("dir", dir).Info("Creating default config since it does not exists!")
-	if err := os.Mkdir(dir, 0755); err != nil {
-		log.WithError(err).WithField("dir", dir).Error("Unable to create directory")
-		return err
-	}
-
-	return nil
-}
-
-func createDefaultConfigFile(filePath string) error {
-	config := Config{
-		Muni: MuniConfig{
-			URL:     "https://is.muni.cz",
-			Token:   "",
-			Course:  "PB071",
-			Faculty: 1433,
-		},
-		Parser: "default",
-	}
-	log.WithField("cfgFile", filePath).Info("Creating config file")
-
-	if err := config.Save(filePath); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -169,4 +133,11 @@ func GetAppConfig() (Config, error) {
 	}
 
 	return config, nil
+}
+
+func setDefaults() {
+	viper.SetDefault("muni.url", "https://is.muni.cz")
+	viper.SetDefault("muni.course", "PB071")
+	viper.SetDefault("muni.faculty", 1433)
+	viper.SetDefault("parser", "default")
 }
