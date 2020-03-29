@@ -70,8 +70,11 @@ func executeParse(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Fetch was successful, result stored in %s\n", application.Results.ResultsDir)
-	for i, item := range items {
-		fmt.Printf("%d  %25s\n", i, item.GetFullName())
+	fmt.Printf("Parse was successful, result stored in %s\n", application.Results.ResultsDir)
+	for key, item := range items {
+		fmt.Printf("Notepad: [%20s]\n", key)
+		for i, info := range item {
+			fmt.Printf("- %03d. %v  Submissions: %2d\n", i, info.ID, len(info.Submissions))
+		}
 	}
 }
