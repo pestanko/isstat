@@ -9,12 +9,12 @@ import (
 
 // CSVStatistic - representation of the CSV statistics
 type CSVStatistic struct {
-	StudentID       string `csv:"student_id"`
-	DateTime string `csv:"datetime"`
-	Index    int    `json:"index" csv:"index"`
-	Points   int    `json:"points" csv:"points"`
-	Final    bool   `json:"final" csv:"final"`
-	Bonus    int    `json:"bonus" csv:"bonus"`
+	StudentID string  `csv:"student_id"`
+	DateTime  string  `csv:"datetime"`
+	Index     int     `json:"index" csv:"index"`
+	Points    float64 `json:"points" csv:"points"`
+	Final     bool    `json:"final" csv:"final"`
+	Bonus     float64 `json:"bonus" csv:"bonus"`
 }
 
 // WriteStatisticsToCSVFile - writes statistics to the CSV file
@@ -27,9 +27,8 @@ func WriteStatisticsToCSVFile(file string, statistics []CSVStatistic) error {
 
 	defer csvFile.Close()
 
-	return 	gocsv.MarshalFile(statistics, csvFile)
+	return gocsv.MarshalFile(statistics, csvFile)
 }
-
 
 // ConvertSubmissionsToCSVStatistics - Converter
 func ConvertSubmissionsToCSVStatistics(students []StudentInfo) []CSVStatistic {

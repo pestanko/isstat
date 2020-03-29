@@ -55,37 +55,49 @@ func (app *IsStatApp) FetchOne(notepad string, timestamp string) (core.ResultIte
 	return resultItem, nil
 }
 
-func (app *IsStatApp) Parse(notepads []string) (map[string][]core.StudentInfo, error) {
-	var items map[string][]core.StudentInfo = make(map[string][]core.StudentInfo)
+func (app *IsStatApp) Parse(patterns []string) (map[string][]core.StudentInfo, error) {
+	var items = make(map[string][]core.StudentInfo)
+	log.WithField("patterns", patterns).Info("Parse notepads")
 
-	for i, notepad := range notepads {
-		log.WithField("index", i).WithField("name", notepads).Info("Parsing notepad")
+	fileNames := app.Results.GlobAll(patterns)
+	log.WithField("filenames", fileNames).Info("found filenames")
 
-		resultItem := core.NewResultItemFromFullName(notepad)
-
-		info, err := app.parseResultItem(&resultItem)
+	for _, notepad := range fileNames {
+		info, err := app.ParseOne(notepad)
 		if err != nil {
-			return items, err
-		}
-
-		jsonitem := core.NewResultItem(resultItem.Name, resultItem.TimeStamp, "json")
-
-		data, err := json.Marshal(info)
-		if err != nil {
-			log.WithError(err).WithField("notepad", notepad).Error("Unable to marshall json with data")
-			return items, err
-		}
-
-		jsonitem.Data = data
-
-		if err := app.Results.Store(&jsonitem); err != nil {
-			log.WithError(err).WithField("notepad", notepad).WithField("timestamp", jsonitem.TimeStamp).Error("Unable to store result")
 			return items, err
 		}
 
 		items[notepad] = info
 	}
 	return items, nil
+}
+
+func (app *IsStatApp) ParseOne(notepad string) ([]core.StudentInfo, error) {
+	log.WithField("name", notepad).Info("Parsing notepad")
+
+	resultItem := core.NewResultItemFromFullName(notepad)
+
+	info, err := app.parseResultItem(&resultItem)
+	if err != nil {
+		return info, err
+	}
+
+	jsonitem := core.NewResultItem(resultItem.Name, resultItem.TimeStamp, "json")
+
+	data, err := json.Marshal(info)
+	if err != nil {
+		log.WithError(err).WithField("notepad", notepad).Error("Unable to marshall json with data")
+		return info, err
+	}
+
+	jsonitem.Data = data
+
+	if err := app.Results.Store(&jsonitem); err != nil {
+		log.WithError(err).WithField("notepad", notepad).WithField("timestamp", jsonitem.TimeStamp).Error("Unable to store result")
+		return info, err
+	}
+	return info, nil
 }
 
 func (app *IsStatApp) parseResultItem(item *core.ResultItem) ([]core.StudentInfo, error) {
@@ -111,7 +123,7 @@ func GetApplication(config *Config) (IsStatApp, error) {
 	register.Register("default", &parsers.KontrFunctionalityParser{})
 	parser := register.GetOrDefault(config.Parser)
 	basicParser := parsers.BasicParser{
-		StudentsRegister: core.NewStudentsRegister(),
+		StudentsRegister:     core.NewStudentsRegister(),
 		NotepadContentParser: parser,
 	}
 

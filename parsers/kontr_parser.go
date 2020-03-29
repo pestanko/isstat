@@ -102,7 +102,7 @@ func parseSubmissionLine(line string) (core.Submission, error) {
 		return submission, nil
 	}
 
-	submission.Bonus , err = strconv.Atoi(fields[4])
+	submission.Bonus , err = strconv.ParseFloat(fields[4], 64)
 	if err != nil {
 		return submission, err
 	}
@@ -125,14 +125,14 @@ func parseSubmissionLine(line string) (core.Submission, error) {
 }
 
 
-func parseNumberWithStar(s string) (int, bool, error) {
+func parseNumberWithStar(s string) (float64, bool, error) {
 	var isFinal = false
 	if strings.HasPrefix(s, "*") {
 		isFinal = true
 		s = s[1:]
 	}
 
-	points, err := strconv.Atoi(s)
+	points, err := strconv.ParseFloat(s, 64)
 
 	if err != nil {
 		return 0, isFinal, err

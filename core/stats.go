@@ -15,9 +15,9 @@ type StudentInfo struct {
 type Submission struct {
 	DateTime time.Time `json:"datetime"`
 	Index int `json:"index"`
-	Points int `json:"points"`
+	Points float64 `json:"points"`
 	Final bool `json:"final"`
-	Bonus int `json:"bonus"`
+	Bonus float64 `json:"bonus"`
 }
 
 // NewStundentSubmissions creates instance for the stundet submissions

@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
+	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -31,10 +33,18 @@ func NewResultItem(name, timestamp, ext string) ResultItem {
 func NewResultItemFromFullName(fullName string) ResultItem {
 	item := ResultItem{}
 
-	_, err := fmt.Sscanf(fullName, "%s.%s.%s", &item.Name, &item.TimeStamp, &item.Ext)
-	if err != nil {
-		log.WithField("fullname", fullName).Warning("Unable to parse the result item from the provided full name")
+	log.WithField("fullName", fullName).Debug("Parsing the full name")
+	parts := strings.Split(fullName, ".")
+	if len(parts) != 3 {
+		log.WithField("partsLen", len(parts)).WithField("parts", parts).Error("Unable to split - parts != 3")
+		return item
 	}
+
+	item.Name = parts[0]
+	item.TimeStamp = parts[1]
+	item.Ext = parts[2]
+
+	log.WithField("item", item).Debug("new Result Item")
 
 	return item
 }
@@ -111,7 +121,7 @@ func (results *Results) List() (items []ResultItem, err error) {
 				WithField("n", n).
 				WithField("filename", fname).
 				Error("Unable to parse file name")
-				return nil, err
+			return nil, err
 		}
 		items = append(items, NewResultItem(name, datetime, ext))
 	}
@@ -122,7 +132,7 @@ func (results *Results) List() (items []ResultItem, err error) {
 func (results *Results) ListPaths() (paths []string, err error) {
 	files, err := ioutil.ReadDir(results.ResultsDir)
 
-    if err != nil {
+	if err != nil {
 		return paths, err
 	}
 
@@ -145,6 +155,37 @@ func (results *Results) GetContent(item *ResultItem) ([]byte, error) {
 	return ioutil.ReadFile(fp)
 }
 
+func (results *Results) GlobAll(notepads []string) []string {
+	var items []string
+
+	for _, item := range notepads {
+		glob := results.Glob(item)
+		items = append(items, glob...)
+	}
+
+	return items
+}
+
+func (results *Results) Glob(pattern string) []string {
+	var filenames []string
+
+	fpath := path.Join(results.ResultsDir, pattern)
+	log.WithField("pattern", pattern).WithField("patternPath", fpath).Debug("Globing pattern")
+	files, err := filepath.Glob(fpath)
+
+	if err != nil {
+		log.WithError(err).WithField("pattern", pattern).Warning("Glob error occurred")
+		return filenames
+	}
+
+	log.WithField("files", files).Debug("Glob found files")
+
+	for _, file := range files {
+		filenames = append(filenames, filepath.Base(file))
+	}
+
+	return filenames
+}
 
 // GetCurrentTimestamp - Gets a current timestamp
 func GetCurrentTimestamp() string {

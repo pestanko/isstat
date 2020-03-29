@@ -11,14 +11,14 @@ import (
 
 // NotepadContent - whole notepad content
 type NotepadContent struct {
-	StudentsContent []StudentContent `xml:"STUDENT>" json:"students"`
+	StudentsContent []StudentContent `xml:"STUDENT" json:"students"`
 }
 
 // StudentContent - represents one entity in the notepad
 type StudentContent struct {
-	Content   string `xml:"OBSAH>" json:"content"`
-	Uco       string `xml:"UCO>" json:"uco"`
-	ChangedBy string `xml:"ZMENIL>" json:"changed_by"`
+	Content   string `xml:"OBSAH" json:"content"`
+	Uco       string `xml:"UCO" json:"uco"`
+	ChangedBy string `xml:"ZMENIL" json:"changed_by"`
 }
 
 // CourseClient - crawls the is muni notepads
@@ -32,7 +32,7 @@ type CourseClient struct {
 
 // UnmarshalNotepadContent - unmarshal the notepad content
 func UnmarshalNotepadContent(data []byte) (content NotepadContent, err error) {
-	if err := xml.Unmarshal(data, content); err != nil {
+	if err := xml.Unmarshal(data, &content); err != nil {
 		return content, err
 	}
 
