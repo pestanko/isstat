@@ -13,8 +13,8 @@ type CSVStatistic struct {
 	Index     int     `json:"index" csv:"index"`
 	DateTime  string  `csv:"datetime"`
 	Points    float64 `json:"points" csv:"points"`
-	Final     bool    `json:"final" csv:"final"`
 	Bonus     float64 `json:"bonus" csv:"bonus"`
+	Final     bool    `json:"final" csv:"final"`
 }
 
 // WriteStatisticsToCSVFile - writes statistics to the CSV file
