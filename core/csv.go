@@ -10,8 +10,8 @@ import (
 // CSVStatistic - representation of the CSV statistics
 type CSVStatistic struct {
 	StudentID string  `csv:"student_id"`
-	DateTime  string  `csv:"datetime"`
 	Index     int     `json:"index" csv:"index"`
+	DateTime  string  `csv:"datetime"`
 	Points    float64 `json:"points" csv:"points"`
 	Final     bool    `json:"final" csv:"final"`
 	Bonus     float64 `json:"bonus" csv:"bonus"`
