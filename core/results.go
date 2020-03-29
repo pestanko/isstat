@@ -28,6 +28,17 @@ func NewResultItem(name, timestamp, ext string) ResultItem {
 	return ResultItem{Name: name, TimeStamp: timestamp, Ext: ext}
 }
 
+func NewResultItemFromFullName(fullName string) ResultItem {
+	item := ResultItem{}
+
+	_, err := fmt.Sscanf(fullName, "%s.%s.%s", &item.Name, &item.TimeStamp, &item.Ext)
+	if err != nil {
+		log.WithField("fullname", fullName).Warning("Unable to parse the result item from the provided full name")
+	}
+
+	return item
+}
+
 // GetFullName for the item
 func (item *ResultItem) GetFullName() string {
 	return fmt.Sprintf("%s.%s.%s", item.Name, item.TimeStamp, item.Ext)
@@ -126,6 +137,12 @@ func (results *Results) ListPaths() (paths []string, err error) {
 // GetPath - gets a full result path
 func (results *Results) GetPath(item *ResultItem) string {
 	return path.Join(results.ResultsDir, item.GetFullName())
+}
+
+// Gets content as bytes
+func (results *Results) GetContent(item *ResultItem) ([]byte, error) {
+	fp := path.Join(results.ResultsDir, item.GetFullName())
+	return ioutil.ReadFile(fp)
 }
 
 

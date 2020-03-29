@@ -23,7 +23,7 @@ type Parser interface {
 
 // BasicParser implementation
 type BasicParser struct {
-	StudentsRegister *core.StudentsRegister
+	StudentsRegister core.StudentsRegister
 	NotepadContentParser NotepadContentParser
 }
 
