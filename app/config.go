@@ -14,6 +14,7 @@ type Config struct {
 	Muni    MuniConfig `json:"muni" yaml:"muni" mapstructure:"muni"`
 	Parser  string     `json:"parser" yaml:"parser" mapstructure:"parser"`
 	Results string     `json:"cache" yaml:"results" mapstructure:"results"`
+	DryRun  bool       `json:"dryrun" yaml:"dryrun" mapstructure:"dryrun"`
 }
 
 //MuniConfig - Is muni config
@@ -24,9 +25,7 @@ type MuniConfig struct {
 	Faculty int    `json:"faculty_id" yaml:"faculty" mapstructure:"faculty"`
 }
 
-func EmptyConfig() Config {
-	return Config{}
-}
+const IsStatConfigName = "isstat-config"
 
 // Gets the application configuration directory
 func GetAppConfigDir() (string, error) {
@@ -46,7 +45,7 @@ func GetConfigFilePath() (string, error) {
 		return "", err
 	}
 
-	return path.Join(appConfigDir, "config.yml"), nil
+	return path.Join(appConfigDir, IsStatConfigName), nil
 }
 
 // Save the config to the specified file
@@ -99,7 +98,7 @@ func LoadConfig(cfgFile string) error {
 		if err == nil {
 			viper.AddConfigPath(workingDirectory)
 		}
-		viper.SetConfigName("isstat-config")
+		viper.SetConfigName(IsStatConfigName)
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
@@ -140,4 +139,5 @@ func setDefaults() {
 	viper.SetDefault("muni.course", "PB071")
 	viper.SetDefault("muni.faculty", 1433)
 	viper.SetDefault("parser", "default")
+	viper.SetDefault("dryrun", false)
 }

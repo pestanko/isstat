@@ -12,6 +12,7 @@ type IsStatApp struct {
 	Client  core.CourseClient
 	Parser  parsers.NotepadContentParser
 	Results core.Results
+	DryRun  bool
 }
 
 // Fetch - fetches the notepads content
@@ -49,12 +50,13 @@ func (app *IsStatApp) FetchWithTimestamp(notepads []string, timestamp string) ([
 // GetApplication - gets an application instance
 func GetApplication(config *Config) (IsStatApp, error) {
 	client := core.NewCourseClient(config.Muni.URL, config.Muni.Token, config.Muni.Faculty, config.Muni.Course)
+	client.DryRun = config.DryRun
 
 	register := parsers.GetParserRegister()
 	register.Register("default", &parsers.KontrFunctionalityParser{})
 	parser := register.GetOrDefault(config.Parser)
 
-	return IsStatApp{Client: client, Parser: parser, Results: core.NewResults(config.Results)}, nil
+	return IsStatApp{Client: client, Parser: parser, Results: core.NewResults(config.Results), DryRun: config.DryRun}, nil
 }
 
 func SetupLogger(loggingLevel string) {
@@ -74,4 +76,3 @@ func SetupLogger(loggingLevel string) {
 	log.SetLevel(level)
 	log.SetOutput(os.Stderr)
 }
-

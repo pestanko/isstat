@@ -27,6 +27,7 @@ type CourseClient struct {
 	Token     string
 	FacultyID int
 	Course    string
+	DryRun    bool
 }
 
 // UnmarshalNotepadContent - unmarshal the notepad content
@@ -35,12 +36,12 @@ func UnmarshalNotepadContent(data []byte) (content NotepadContent, err error) {
 		return content, err
 	}
 
-	return content,nil
+	return content, nil
 }
 
 // NewCourseClient - Creates a new course client
 func NewCourseClient(url string, token string, facultyID int, course string) CourseClient {
-	return CourseClient{URL: url, Token: token, FacultyID: facultyID, Course: course}
+	return CourseClient{URL: url, Token: token, FacultyID: facultyID, Course: course, DryRun: false}
 }
 
 //GetNotepadContent - Gets a notepad content
@@ -48,6 +49,10 @@ func (client *CourseClient) GetNotepadContent(notepadCodename string) (NotepadCo
 	data, err := client.GetNotepadContentData(notepadCodename)
 	if err != nil {
 		return NotepadContent{}, err
+	}
+
+	if client.DryRun {
+		return NotepadContent{}, nil
 	}
 
 	return UnmarshalNotepadContent(data)
@@ -68,15 +73,22 @@ func (client *CourseClient) GetNotepadContentData(notepadCodename string) ([]byt
 
 //Save the data to the XML file (caching)
 func (client *CourseClient) Save(data []byte, name string) error {
-	if err := ioutil.WriteFile(name, data, 0644); err != nil {
-		return err
+
+	if client.DryRun {
+		return nil
 	}
-	return nil
+
+	return ioutil.WriteFile(name, data, 0644)
 }
 
 // Fetch - fetches XML data
 func (client *CourseClient) Fetch(url string) ([]byte, error) {
 	log.WithField("url", url).Debug("Fetching data")
+
+	if client.DryRun {
+		return []byte{}, nil
+	}
+
 	resp, err := http.Get(url)
 	if err != nil {
 		log.WithError(err).WithField("url", url).Error("Fetch failed")
@@ -103,5 +115,3 @@ func (client *CourseClient) buildNotesURL(notepadCodename string) string {
 		"%s/export/pb_blok_api?klic=%s;fakulta=%d;kod=%s;operace=blok-dej-obsah;zkratka=%s",
 		client.URL, client.Token, client.FacultyID, client.Course, notepadCodename)
 }
-
-

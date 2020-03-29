@@ -67,11 +67,13 @@ func init() {
   rootCmd.PersistentFlags().Int( "faculty-id", 0, "is muni faculty id")
   rootCmd.PersistentFlags().String( "parser", "", "parser for parsing the muni notepad content")
   rootCmd.PersistentFlags().String( "results", "", "results directory (default $CWD)")
+  rootCmd.PersistentFlags().Bool( "dry-run", false, "dry run - do not execute the request")
 
   _ = viper.BindPFlag("muni.url", rootCmd.PersistentFlags().Lookup("url"))
   _ = viper.BindPFlag("muni.token", rootCmd.PersistentFlags().Lookup("token"))
   _ = viper.BindPFlag("muni.course", rootCmd.PersistentFlags().Lookup("course"))
   _ = viper.BindPFlag("muni.faculty", rootCmd.PersistentFlags().Lookup("faculty-id"))
+  _ = viper.BindPFlag("dryrun", rootCmd.PersistentFlags().Lookup("dry-run"))
 
 }
 
