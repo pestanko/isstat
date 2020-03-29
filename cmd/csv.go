@@ -70,7 +70,7 @@ func executeCSV(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Fetch was successful, result stored in %s\n", application.Results.ResultsDir)
+	fmt.Printf("CSV was successful, result stored in %s\n", application.Results.ResultsDir)
 	for i, item := range items {
 		fmt.Printf("%d  %25s\n", i, item.GetFullName())
 	}

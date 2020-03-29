@@ -30,13 +30,19 @@ func WriteStatisticsToCSVFile(file string, statistics []CSVStatistic) error {
 	return gocsv.MarshalFile(statistics, csvFile)
 }
 
-
 // ConvertSubmissionsToCSVStatistics - Converter
 func ConvertSubmissionsToCSVStatistics(students []StudentInfo) []CSVStatistic {
 	var stats []CSVStatistic
 	for _, student := range students {
 		for _, submission := range student.Submissions {
-			stat := CSVStatistic{StudentID: student.ID.String(), Index: submission.Index, Points: submission.Points, Final: submission.Final, Bonus: submission.Bonus}
+			stat := CSVStatistic{
+				StudentID: student.ID.String(),
+				DateTime:  submission.DateTime.String(),
+				Index:     submission.Index,
+				Points:    submission.Points,
+				Final:     submission.Final,
+				Bonus:     submission.Bonus,
+			}
 			stats = append(stats, stat)
 		}
 	}

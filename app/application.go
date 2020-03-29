@@ -74,16 +74,16 @@ func (app *IsStatApp) ConvertToCSV(patterns []string) ([]core.ResultItem, error)
 func (app *IsStatApp) ConvertToCSVOne(notepad string) (core.ResultItem, error) {
 	log.WithField("name", notepad).Info("Converting to csv")
 
-	resultItem := core.NewResultItemFromFullName(notepad)
+	jsonItem := core.NewResultItemFromFullName(notepad)
 
-	csvContent, err := app.convertStudentInfo(&resultItem)
+	csvContent, err := app.convertStudentInfo(&jsonItem)
 	if err != nil {
-		return resultItem, err
+		return jsonItem, err
 	}
 
-	csvItem := core.NewResultItem(resultItem.Name, resultItem.TimeStamp, "csv")
+	csvItem := core.NewResultItem(jsonItem.Name, jsonItem.TimeStamp, "csv")
 
-	if err := core.WriteStatisticsToCSVFile(app.Results.GetPath(&resultItem), csvContent); err != nil {
+	if err := core.WriteStatisticsToCSVFile(app.Results.GetPath(&csvItem), csvContent); err != nil {
 		return csvItem, err
 	}
 
