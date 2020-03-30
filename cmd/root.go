@@ -68,12 +68,14 @@ func init() {
   rootCmd.PersistentFlags().String( "parser", "", "parser for parsing the muni notepad content")
   rootCmd.PersistentFlags().String( "results", "", "results directory (default $CWD)")
   rootCmd.PersistentFlags().Bool( "dry-run", false, "dry run - do not execute the request")
+  rootCmd.PersistentFlags().Bool( "without-timestamp", false, "create also without timestamp")
 
   _ = viper.BindPFlag("muni.url", rootCmd.PersistentFlags().Lookup("url"))
   _ = viper.BindPFlag("muni.token", rootCmd.PersistentFlags().Lookup("token"))
   _ = viper.BindPFlag("muni.course", rootCmd.PersistentFlags().Lookup("course"))
   _ = viper.BindPFlag("muni.faculty", rootCmd.PersistentFlags().Lookup("faculty-id"))
   _ = viper.BindPFlag("dryrun", rootCmd.PersistentFlags().Lookup("dry-run"))
+  _ = viper.BindPFlag("without_timestamp", rootCmd.PersistentFlags().Lookup("without-timestamp"))
 
 }
 

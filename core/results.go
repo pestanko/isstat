@@ -12,9 +12,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Results - stucture to hold the result
+// Results - structure to hold the result
 type Results struct {
-	ResultsDir string
+	ResultsDir       string
+	WithoutTimestamp bool
 }
 
 // ResultItem - represent one item in results
@@ -35,7 +36,14 @@ func NewResultItemFromFullName(fullName string) ResultItem {
 
 	log.WithField("fullName", fullName).Debug("Parsing the full name")
 	parts := strings.Split(fullName, ".")
-	if len(parts) != 3 {
+	if len(parts) == 3 {
+		item.Name = parts[0]
+		item.TimeStamp = parts[1]
+		item.Ext = parts[2]
+	} else if len(parts) == 2 {
+		item.Name = parts[0]
+		item.Ext = parts[1]
+	} else {
 		log.WithField("partsLen", len(parts)).WithField("parts", parts).Error("Unable to split - parts != 3")
 		return item
 	}
@@ -51,7 +59,15 @@ func NewResultItemFromFullName(fullName string) ResultItem {
 
 // GetFullName for the item
 func (item *ResultItem) GetFullName() string {
+	if item.TimeStamp == "" {
+		return item.GetFullNameWithoutTimestamp()
+	}
 	return fmt.Sprintf("%s.%s.%s", item.Name, item.TimeStamp, item.Ext)
+}
+
+func (item *ResultItem) GetFullNameWithoutTimestamp() string {
+	return fmt.Sprintf("%s.%s", item.Name, item.Ext)
+
 }
 
 func (item *ResultItem) getLogEntry() *log.Entry {
@@ -62,7 +78,7 @@ func (item *ResultItem) getLogEntry() *log.Entry {
 }
 
 // NewResults - Creates a new result holder
-func NewResults(resultsDir string) Results {
+func NewResults(resultsDir string, withoutTimestamp bool) Results {
 	var err error
 	if resultsDir == "" {
 		resultsDir, err = os.Getwd()
@@ -72,7 +88,7 @@ func NewResults(resultsDir string) Results {
 	}
 
 	log.WithField("dir", resultsDir).Info("Results dir location")
-	return Results{ResultsDir: resultsDir}
+	return Results{ResultsDir: resultsDir, WithoutTimestamp: withoutTimestamp}
 }
 
 // Store - store the content to the file
@@ -83,6 +99,19 @@ func (results *Results) Store(item *ResultItem) error {
 
 	fullPath := results.GetPath(item)
 	item.getLogEntry().WithField("path", fullPath).Info("Storing result")
+
+	if item.TimeStamp == "" {
+		// DO NOT STORE
+		return nil
+	}
+
+	if results.WithoutTimestamp {
+		item.getLogEntry().WithField("path", item.GetFullNameWithoutTimestamp()).Info("Storing result without timestamp")
+
+		if err := ioutil.WriteFile(fullPath, item.Data, 0644); err != nil {
+			item.getLogEntry().WithError(err).Error("Unable to store without timestamp")
+		}
+	}
 
 	return ioutil.WriteFile(fullPath, item.Data, 0644)
 }
@@ -149,6 +178,10 @@ func (results *Results) GetPath(item *ResultItem) string {
 	return path.Join(results.ResultsDir, item.GetFullName())
 }
 
+func (results *Results) GetPathWithoutTimestamp(item *ResultItem) string {
+	return path.Join(results.ResultsDir, item.GetFullNameWithoutTimestamp())
+}
+
 // Gets content as bytes
 func (results *Results) GetContent(item *ResultItem) ([]byte, error) {
 	fp := results.GetPath(item)
@@ -186,7 +219,6 @@ func (results *Results) Glob(pattern string) []string {
 
 	return filenames
 }
-
 
 // GetCurrentTimestamp - Gets a current timestamp
 func GetCurrentTimestamp() string {

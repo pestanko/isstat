@@ -6,6 +6,7 @@ import (
 	"github.com/pestanko/isstat/parsers"
 	log "github.com/sirupsen/logrus"
 	"os"
+	"sort"
 )
 
 // IsStatApp - Is MUNI Statistics application
@@ -13,7 +14,7 @@ type IsStatApp struct {
 	Client  core.CourseClient
 	Parser  parsers.Parser
 	Results core.Results
-	DryRun  bool
+	Config  *Config
 }
 
 // Fetch - fetches the notepads content
@@ -62,9 +63,10 @@ func (app *IsStatApp) ConvertToCSV(patterns []string) ([]core.ResultItem, error)
 	log.WithField("filenames", fileNames).Info("found filenames")
 
 	for _, notepad := range fileNames {
-		resultItem, err2 := app.ConvertToCSVOne(notepad)
-		if err2 != nil {
-			return items, err2
+		resultItem, err := app.ConvertToCSVOne(notepad)
+		if err != nil {
+			log.WithField("notepad", notepad).WithError(err).Error("Unable to convert to CSV")
+			continue
 		}
 		items = append(items, resultItem)
 	}
@@ -100,7 +102,8 @@ func (app *IsStatApp) Parse(patterns []string) (map[string][]core.StudentInfo, e
 	for _, notepad := range fileNames {
 		info, err := app.ParseOne(notepad)
 		if err != nil {
-			return items, err
+			log.WithError(err).WithField("notepad", notepad).Error("Error in parsing the notepad")
+			continue
 		}
 
 		items[notepad] = info
@@ -163,6 +166,42 @@ func (app *IsStatApp) convertStudentInfo(item *core.ResultItem) ([]core.CSVStati
 	return core.ConvertSubmissionsToCSVStatistics(infoContent), nil
 }
 
+func (app *IsStatApp) CleanResults(patterns []string, limit int) ([]core.ResultItem, error) {
+	items := app.PatternsToResultItems(patterns)
+
+	var removedItems []core.ResultItem
+
+	ItemsSortByTimestamp(items)
+
+	for i, item := range items {
+		if i > limit {
+			if err := os.Remove(app.Results.GetPath(&item)); err != nil {
+				log.WithField("fullname", item.GetFullName()).WithError(err).Error("Unable to remove")
+				continue
+			}
+			removedItems = append(removedItems, item)
+		}
+	}
+
+	return removedItems, nil
+}
+
+func (app *IsStatApp) PatternsToResultItems(patterns []string) []core.ResultItem {
+	fileNames := app.Results.GlobAll(patterns)
+	log.WithField("filenames", fileNames).Info("found filenames")
+	var items []core.ResultItem
+
+	for _, fileName := range fileNames {
+		item := core.NewResultItemFromFullName(fileName)
+		if item.TimeStamp == "" {
+			continue
+		}
+		items = append(items, item)
+	}
+
+	return items
+}
+
 // GetApplication - gets an application instance
 func GetApplication(config *Config) (IsStatApp, error) {
 	client := core.NewCourseClient(config.Muni.URL, config.Muni.Token, config.Muni.Faculty, config.Muni.Course)
@@ -176,7 +215,7 @@ func GetApplication(config *Config) (IsStatApp, error) {
 		NotepadContentParser: parser,
 	}
 
-	return IsStatApp{Client: client, Parser: &basicParser, Results: core.NewResults(config.Results), DryRun: config.DryRun}, nil
+	return IsStatApp{Client: client, Parser: &basicParser, Results: core.NewResults(config.Results, config.WithoutTimestamp), Config: config}, nil
 }
 
 func SetupLogger(loggingLevel string) {
@@ -195,4 +234,11 @@ func SetupLogger(loggingLevel string) {
 
 	log.SetLevel(level)
 	log.SetOutput(os.Stderr)
+}
+
+func ItemsSortByTimestamp(items []core.ResultItem) []core.ResultItem {
+	sort.Slice(items[:], func(i, j int) bool {
+		return items[i].TimeStamp > items[j].TimeStamp
+	})
+	return items
 }

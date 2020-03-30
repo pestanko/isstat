@@ -11,10 +11,11 @@ import (
 
 // Config - Application config
 type Config struct {
-	Muni    MuniConfig `json:"muni" yaml:"muni" mapstructure:"muni"`
-	Parser  string     `json:"parser" yaml:"parser" mapstructure:"parser"`
-	Results string     `json:"cache" yaml:"results" mapstructure:"results"`
-	DryRun  bool       `json:"dryrun" yaml:"dryrun" mapstructure:"dryrun"`
+	Muni             MuniConfig `json:"muni" yaml:"muni" mapstructure:"muni"`
+	Parser           string     `json:"parser" yaml:"parser" mapstructure:"parser"`
+	Results          string     `json:"cache" yaml:"results" mapstructure:"results"`
+	DryRun           bool       `json:"dryrun" yaml:"dryrun" mapstructure:"dryrun"`
+	WithoutTimestamp bool       `json:"without_timestamp" yaml:"without_timestamp" mapstructure:"without_timestamp"`
 }
 
 //MuniConfig - Is muni config
