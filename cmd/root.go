@@ -74,6 +74,8 @@ func init() {
   _ = viper.BindPFlag("muni.token", rootCmd.PersistentFlags().Lookup("token"))
   _ = viper.BindPFlag("muni.course", rootCmd.PersistentFlags().Lookup("course"))
   _ = viper.BindPFlag("muni.faculty", rootCmd.PersistentFlags().Lookup("faculty-id"))
+  _ = viper.BindPFlag("results", rootCmd.PersistentFlags().Lookup("results"))
+  _ = viper.BindPFlag("parser", rootCmd.PersistentFlags().Lookup("parser"))
   _ = viper.BindPFlag("dryrun", rootCmd.PersistentFlags().Lookup("dry-run"))
   _ = viper.BindPFlag("without_timestamp", rootCmd.PersistentFlags().Lookup("without-timestamp"))
 
