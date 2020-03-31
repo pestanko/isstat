@@ -32,6 +32,9 @@ func (app *IsStatApp) FetchWithTimestamp(notepads []string, timestamp string) ([
 		if err2 != nil {
 			return items, err2
 		}
+		if resultItem.Name == "" {
+			continue
+		}
 		items = append(items, resultItem)
 	}
 	return items, nil
@@ -68,6 +71,9 @@ func (app *IsStatApp) ConvertToCSV(patterns []string) ([]core.ResultItem, error)
 			log.WithField("notepad", notepad).WithError(err).Error("Unable to convert to CSV")
 			continue
 		}
+		if resultItem.Name == "" {
+			continue
+		}
 		items = append(items, resultItem)
 	}
 	return items, nil
@@ -77,6 +83,10 @@ func (app *IsStatApp) ConvertToCSVOne(notepad string) (core.ResultItem, error) {
 	log.WithField("name", notepad).Info("Converting to csv")
 
 	jsonItem := core.NewResultItemFromFullName(notepad)
+
+	if jsonItem.Ext != "json" {
+		return core.ResultItem{}, nil
+	}
 
 	csvContent, err := app.convertStudentInfo(&jsonItem)
 	if err != nil {
@@ -115,6 +125,10 @@ func (app *IsStatApp) ParseOne(notepad string) ([]core.StudentInfo, error) {
 	log.WithField("name", notepad).Info("Parsing notepad")
 
 	resultItem := core.NewResultItemFromFullName(notepad)
+
+	if resultItem.Ext != "xml" {
+		return []core.StudentInfo{}, nil
+	}
 
 	info, err := app.parseResultItem(&resultItem)
 	if err != nil {
@@ -200,6 +214,76 @@ func (app *IsStatApp) PatternsToResultItems(patterns []string) []core.ResultItem
 	}
 
 	return items
+}
+
+func (app *IsStatApp) GetLatest() (result map[string]map[string]core.ResultItem) {
+	result = make(map[string]map[string]core.ResultItem)
+	resultItems := app.PatternsToResultItems([]string{"*"})
+	ItemsSortByTimestamp(resultItems)
+	categories := CategorizeResultItems(resultItems)
+
+	if len(categories) == 0 {
+		return result
+	}
+
+	for name, extensions := range categories {
+		result[name] = make(map[string]core.ResultItem)
+		for ext, values := range extensions {
+			result[name][ext] = values[0]
+		}
+	}
+
+	return result
+}
+
+func (app *IsStatApp) DumpLatest() (result []string, err error) {
+	latest := app.GetLatest()
+	if len(latest) == 0 {
+		return result, nil
+	}
+
+	for _, extensions := range latest {
+		for _, item := range extensions {
+			data, err := app.Results.GetContent(&item)
+			if err != nil {
+				log.WithField("name", item.GetFullName()).Error("Unable to fetch data")
+			}
+			item.Data = data
+			err = app.Results.StoreWithoutTimestamp(&item)
+			result = append(result, item.GetFullName())
+		}
+	}
+	return result, err
+}
+
+func CategorizeResultItems(items []core.ResultItem) (result map[string]map[string][]core.ResultItem) {
+	result = make(map[string]map[string][]core.ResultItem)
+	named := CategorizeByName(items)
+	for key, value := range named {
+		result[key] = CategorizeByExtension(value)
+	}
+
+	return result
+}
+
+func CategorizeByExtension(items []core.ResultItem) map[string][]core.ResultItem {
+	var result = make(map[string][]core.ResultItem)
+
+	for _, item := range items {
+		result[item.Ext] = append(result[item.Ext], item)
+	}
+
+	return result
+}
+
+func CategorizeByName(items []core.ResultItem) (result map[string][]core.ResultItem) {
+	result = make(map[string][]core.ResultItem)
+
+	for _, item := range items {
+		result[item.Name] = append(result[item.Name], item)
+	}
+
+	return result
 }
 
 // GetApplication - gets an application instance

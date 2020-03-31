@@ -48,10 +48,6 @@ func NewResultItemFromFullName(fullName string) ResultItem {
 		return item
 	}
 
-	item.Name = parts[0]
-	item.TimeStamp = parts[1]
-	item.Ext = parts[2]
-
 	log.WithField("item", item).Debug("new Result Item")
 
 	return item
@@ -106,14 +102,21 @@ func (results *Results) Store(item *ResultItem) error {
 	}
 
 	if results.WithoutTimestamp {
-		item.getLogEntry().WithField("path", item.GetFullNameWithoutTimestamp()).Info("Storing result without timestamp")
-
-		if err := ioutil.WriteFile(fullPath, item.Data, 0644); err != nil {
-			item.getLogEntry().WithError(err).Error("Unable to store without timestamp")
-		}
+		_ = results.StoreWithoutTimestamp(item)
 	}
 
 	return ioutil.WriteFile(fullPath, item.Data, 0644)
+}
+
+func (results *Results) StoreWithoutTimestamp(item *ResultItem) error {
+	pth := results.GetPathWithoutTimestamp(item)
+	item.getLogEntry().WithField("path", pth).Info("Storing result without timestamp")
+
+	if err := ioutil.WriteFile(pth, item.Data, 0644); err != nil {
+		item.getLogEntry().WithError(err).Error("Unable to store without timestamp")
+		return err
+	}
+	return nil
 }
 
 // Get - get item's content
