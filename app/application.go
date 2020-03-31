@@ -187,6 +187,35 @@ func (app *IsStatApp) CleanResults(patterns []string, limit int) ([]core.ResultI
 
 	ItemsSortByTimestamp(items)
 
+	categories := CategorizeResultItems(items)
+
+	for name, extensions := range categories {
+		for ext, values := range extensions {
+			for i, item := range values {
+				if i >= limit {
+					log.WithField("catName", name).WithFields(log.Fields{
+						"index":    i,
+						"catName":  name,
+						"catExt":   ext,
+						"fileName": item.GetFullName(),
+					}).Info("Clean: Removing result")
+
+					if err := os.Remove(app.Results.GetPath(&item)); err != nil {
+						log.WithField("fullname", item.GetFullName()).WithError(err).Error("Unable to remove")
+						continue
+					}
+				} else {
+					log.WithField("catName", name).WithFields(log.Fields{
+						"index":    i,
+						"catName":  name,
+						"catExt":   ext,
+						"fileName": item.GetFullName(),
+					}).Info("Clean: Keeping the result")
+				}
+			}
+		}
+	}
+
 	for i, item := range items {
 		if i > limit {
 			if err := os.Remove(app.Results.GetPath(&item)); err != nil {
