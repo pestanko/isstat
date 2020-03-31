@@ -216,16 +216,6 @@ func (app *IsStatApp) CleanResults(patterns []string, limit int) ([]core.ResultI
 		}
 	}
 
-	for i, item := range items {
-		if i > limit {
-			if err := os.Remove(app.Results.GetPath(&item)); err != nil {
-				log.WithField("fullname", item.GetFullName()).WithError(err).Error("Unable to remove")
-				continue
-			}
-			removedItems = append(removedItems, item)
-		}
-	}
-
 	return removedItems, nil
 }
 
